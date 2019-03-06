@@ -1,29 +1,39 @@
 /* eslint-disable no-console, no-process-exit */
 const imdb = require('./src/imdb');
+var express = require('express');
+var hostname = 'localhost'; 
+var port = 3000;
 const DENZEL_IMDB_ID = 'nm0000243';
-var fs=require('fs');
+var MongoClient = require('mongodb').MongoClient;
+
+var app = express(); 
+var myRouter = express.Router();
+
+const uri = "mongodb+srv://bruno:azertyuiop@cluster0-8nvxw.mongodb.net/ListOfMovie?retryWrites=true";
+const client = new MongoClient(uri, { useNewUrlParser: true });
 
 
 async function sandbox (actor) {
   try {
+    app.listen(port, hostname, function(){
+      console.log("Mon serveur fonctionne sur http://"+ hostname +":"+port+"\n"); 
+    });
     console.log(`📽️  fetching filmography of ${actor}...`);
     const movies = await imdb(actor);  
     const awesome = movies.filter(movie => movie.metascore >= 77);
-    console.log(`🍿 ${movies.length} movies found.`);
-    console.log(JSON.stringify(movies, null, 2));
-    console.log(`🥇 ${awesome.length} awesome movies found.`);
-    console.log(JSON.stringify(awesome, null, 2));
-    
-    var string=JSON.stringify(movies,null,2);
-    fs.writeFile('movies.json',string,function(err) { 
-        if(err) return console.error(err); 
-        console.log('done'); 
-    })
-    var string2=JSON.stringify(awesome,null,2);
-    fs.writeFile('awesome.json',string2,function(err) { 
-        if(err) return console.error(err); 
-        console.log('done'); 
-    })
+
+    client.connect(err => {
+     
+      const collection = client.db("ListOfMovie").collection("Movie");
+      collection.insert(movies, null, function (error, results) {
+        if (error) throw error;
+    });
+      collection.insert(awesome, null, function (error, results) {
+        if (error) throw error;
+    });
+      client.close();
+    }); 
+ 
     //process.exit(0);
   } catch (e) {
     console.error(e);
