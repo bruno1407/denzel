@@ -53,7 +53,7 @@ app.get("/movies", (request, response) => {
 });
 
 app.get("/movies/:id", (request, response) => {
-    collection.findOne({ "_id": new ObjectId(request.params.id) }, (error, result) => {
+    collection.findOne({ "id": request.params.id }, (error, result) => {
         if(error) {
             return response.status(500).send(error);
         }
@@ -61,12 +61,11 @@ app.get("/movies/:id", (request, response) => {
     });
 });
 app.post("/movies/:id", (request, response) => {
-    req=request.query;
-    collection.insert(request.body, (error, result) => {
+    req=request.body;
+    collection.update({id:request.params.id},{$set:{date:req.date,review:req.review}},(error, result) => {           
         if(error) {
             return response.status(500).send(error);
-        }
-        response.send(result.result);
-        console.log("done");
-    });
+        }           
+            response.send(result)          
+        });
 });
